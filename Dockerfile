@@ -15,9 +15,12 @@ ARG BRANCH=manyuser
 ARG WORK=~
 
 
-RUN apk --no-cache add python libsodium wget tini git openssh-client \
-    apk --no-cache add --virtual devs tar curl
-
+RUN apk --no-cache add python \
+    libsodium \
+    wget
+    
+RUN apk --no-cache add tini git openssh-client \
+    && apk --no-cache add --virtual devs tar curl
 
 RUN mkdir -p $WORK && \
     wget -qO- --no-check-certificate https://github.com/shadowsocksr-backup/shadowsocksr/archive/$BRANCH.tar.gz | tar -xzf - -C $WORK
