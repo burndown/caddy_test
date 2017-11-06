@@ -11,6 +11,7 @@ ENV TIMEOUT         300
 ENV DNS_ADDR        8.8.8.8
 ENV DNS_ADDR_2      8.8.4.4
 
+ARG plugins=http.git
 ARG BRANCH=manyuser
 ARG WORK=~
 
@@ -26,9 +27,14 @@ RUN mkdir -p $WORK && \
     wget -qO- --no-check-certificate https://github.com/shadowsocksr-backup/shadowsocksr/archive/$BRANCH.tar.gz | tar -xzf - -C $WORK
 COPY  config.json $WORK/shadowsocksr-$BRANCH/shadowsocks
 
-RUN curl "https://caddyserver.com/download/build?os=linux&arch=amd64&features=DNS%2Cawslambda%2Ccors%2Cexpires%2Cfilemanager%2Cgit%2Chugo%2Cipfilter%2Cjsonp%2Cjwt%2Clocale%2Cmailout%2Cminify%2Cmultipass%2Cprometheus%2Cratelimit%2Crealip%2Csearch%2Cupload%2Ccloudflare%2Cdigitalocean%2Cdnsimple%2Cdyn%2Cgandi%2Cgooglecloud%2Clinode%2Cnamecheap%2Crfc2136%2Croute53%2Cvultr" \
-    | tar --no-same-owner -C /usr/bin/ -xz caddy
-RUN apk del devs
+RUN curl --silent --show-error --fail --location --header "Accept: application/tar+gzip, application/x-gzip, application/octet-stream" -o - \
+      "https://caddyserver.com/download/linux/amd64?plugins=${plugins}" \
+    | tar --no-same-owner -C /usr/bin/ -xz caddy && \
+    chmod 0755 /usr/bin/caddy && \
+    addgroup -S caddy && \
+    adduser -D -S -H -s /sbin/nologin -G caddy caddy && \
+    /usr/bin/caddy -version
+    
 COPY ./Caddyfile /etc/Caddyfile
 
 WORKDIR $WORK/shadowsocksr-$BRANCH/shadowsocks
